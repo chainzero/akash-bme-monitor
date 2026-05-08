@@ -156,7 +156,7 @@ func (c *WormholescanClient) GetUpgradeVAA(ctx context.Context, governanceEmitte
 	// Chain 1 = Ethereum mainnet. The governance emitter is a well-known constant
 	// address used for all Wormhole core governance actions (guardian set upgrades,
 	// contract upgrades, fee updates, etc.).
-	url := fmt.Sprintf("%s/api/v1/vaas/1/%s?pageSize=20", c.baseURL, governanceEmitter)
+	url := fmt.Sprintf("%s/api/v1/vaas/1/%s?pageSize=100", c.baseURL, governanceEmitter)
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {

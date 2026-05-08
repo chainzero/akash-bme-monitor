@@ -13,10 +13,12 @@ import (
 	"time"
 )
 
-// submitNewGuardianSetSelector is the 4-byte function selector for submitNewGuardianSet(bytes).
-// Computed as the first 4 bytes of keccak256("submitNewGuardianSet(bytes)").
-// Used to identify guardian set upgrade transactions in the Etherscan txlist response.
-const submitNewGuardianSetSelector = "3bc0aee6"
+// submitNewGuardianSetSelector is the 4-byte function selector for the Wormhole Core
+// contract's submitNewGuardianSet function. Identified empirically from on-chain
+// transaction data — this value finds the correct transactions on the deployed contract.
+// VAA type validation (validateGuardianSetUpgradeVAA) is the primary correctness guard;
+// this selector just narrows the search to relevant transactions.
+const submitNewGuardianSetSelector = "6606b4e0"
 
 // EtherscanClient retrieves guardian set upgrade VAAs from Ethereum transaction calldata.
 //
@@ -74,7 +76,7 @@ func (c *EtherscanClient) GetGuardianSetUpgradeVAA(ctx context.Context, targetIn
 
 	url := fmt.Sprintf(
 		"https://api.etherscan.io/v2/api?chainid=1&module=account&action=txlist"+
-			"&address=%s&sort=desc&page=1&offset=50&apikey=%s",
+			"&address=%s&sort=desc&page=1&offset=500&apikey=%s",
 		c.wormholeContract, c.apiKey,
 	)
 
@@ -189,6 +191,41 @@ func validateGuardianSetUpgradeVAA(vaaBytes []byte, newIndex uint32) error {
 		return fmt.Errorf("VAA upgrades to guardian set index %d, expected %d", gotIndex, newIndex)
 	}
 
+	return nil
+}
+
+// CheckAPIKey verifies the Etherscan API key is present and accepted by the API.
+// Uses the lightweight stats/ethsupply endpoint — no address lookup, minimal quota cost.
+func (c *EtherscanClient) CheckAPIKey(ctx context.Context) error {
+	if c.apiKey == "" {
+		return fmt.Errorf("ETHERSCAN_API_KEY not configured")
+	}
+
+	url := fmt.Sprintf(
+		"https://api.etherscan.io/v2/api?chainid=1&module=stats&action=ethsupply&apikey=%s",
+		c.apiKey,
+	)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return err
+	}
+
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return fmt.Errorf("unreachable: %w", err)
+	}
+	defer resp.Body.Close()
+
+	var result struct {
+		Status  string `json:"status"`
+		Message string `json:"message"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return fmt.Errorf("decode error: %w", err)
+	}
+	if result.Status != "1" {
+		return fmt.Errorf("%s", result.Message)
+	}
 	return nil
 }
 

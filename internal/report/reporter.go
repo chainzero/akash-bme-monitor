@@ -140,6 +140,8 @@ func (r *Reporter) post(ctx context.Context, header string) {
 		fmt.Fprintf(&b, "\nPyth Forum: ✅ monitoring active\n")
 	}
 
+	r.appendAPIHealthChecks(ctx, &b)
+
 	r.alerter.Post(header, b.String())
 }
 
@@ -372,6 +374,28 @@ func (r *Reporter) fetchWalletBalance(ctx context.Context, nodes []string, addre
 		}
 	}
 	return 0, nil
+}
+
+func (r *Reporter) appendAPIHealthChecks(ctx context.Context, b *strings.Builder) {
+	fmt.Fprintf(b, "\n━━━ Required API Health Checks ━━━\n\n")
+
+	// Etherscan — required for automatic VAA retrieval on guardian set rotation.
+	// If this key is missing or expired, the monitoring app cannot auto-generate
+	// the submit_v_a_a command and operators will need to retrieve the VAA manually.
+	apiKey := r.cfg.GuardianSetMonitor.EtherscanAPIKey
+	ethClient := guardian.NewEtherscanClient(apiKey, r.cfg.GuardianSetMonitor.WormholeContract)
+	if err := ethClient.CheckAPIKey(ctx); err != nil {
+		fmt.Fprintf(b, "Etherscan API: ❌ %s\n", err)
+		if apiKey == "" {
+			fmt.Fprintf(b, "  → Set the ETHERSCAN_API_KEY environment variable in the k8s secret\n")
+		} else {
+			fmt.Fprintf(b, "  → Key may be expired or rate-limited — check ETHERSCAN_API_KEY in the k8s secret\n")
+		}
+	} else {
+		fmt.Fprintf(b, "Etherscan API: ✅ operational\n")
+	}
+
+	fmt.Fprintln(b)
 }
 
 // durationUntilNext returns the duration until the next occurrence of hour:minute

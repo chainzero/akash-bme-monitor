@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -21,6 +22,21 @@ import (
 )
 
 func main() {
+	// test-vaa subcommand: exercises VAA fetch logic without a live blockchain.
+	// Usage: price-feed-monitor test-vaa --target-index <N>
+	if len(os.Args) > 1 && os.Args[1] == "test-vaa" {
+		fs := flag.NewFlagSet("test-vaa", flag.ExitOnError)
+		targetIndex := fs.Uint("target-index", 0, "guardian set index to fetch the upgrade VAA for (required)")
+		fs.Parse(os.Args[2:]) //nolint:errcheck // ExitOnError handles this
+		if *targetIndex == 0 {
+			fmt.Fprintln(os.Stderr, "usage: price-feed-monitor test-vaa --target-index <N>")
+			os.Exit(1)
+		}
+		ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+		defer cancel()
+		os.Exit(guardian.RunVAAFetchTest(ctx, os.Getenv("ETHERSCAN_API_KEY"), uint32(*targetIndex), os.Stdout))
+	}
+
 	defaultConfig := "config.yaml"
 	if v := os.Getenv(config.EnvConfigPath); v != "" {
 		defaultConfig = v
