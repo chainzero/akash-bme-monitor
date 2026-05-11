@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/akash-network/price-feed-monitor/internal/config"
+	"github.com/chainzero/akash-bme-monitor/internal/config"
 )
 
 const (

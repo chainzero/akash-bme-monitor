@@ -3,7 +3,7 @@ package alerting
 import (
 	"log/slog"
 
-	"github.com/akash-network/price-feed-monitor/internal/types"
+	"github.com/chainzero/akash-bme-monitor/internal/types"
 	sendgridgo "github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 )

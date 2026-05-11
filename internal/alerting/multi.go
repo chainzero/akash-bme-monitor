@@ -1,6 +1,6 @@
 package alerting
 
-import "github.com/akash-network/price-feed-monitor/internal/types"
+import "github.com/chainzero/akash-bme-monitor/internal/types"
 
 // Multi fans out Send, Resolve, and Post calls to multiple Alerter backends.
 // All backends receive every call; a failure in one does not prevent others from running.

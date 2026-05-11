@@ -10,9 +10,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/akash-network/price-feed-monitor/internal/alerting"
-	"github.com/akash-network/price-feed-monitor/internal/config"
-	"github.com/akash-network/price-feed-monitor/internal/types"
+	"github.com/chainzero/akash-bme-monitor/internal/alerting"
+	"github.com/chainzero/akash-bme-monitor/internal/config"
+	"github.com/chainzero/akash-bme-monitor/internal/types"
 )
 
 // guardianSetFilePattern matches files like v6.prototxt in the canonical_sets directory.

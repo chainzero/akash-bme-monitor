@@ -11,11 +11,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/akash-network/price-feed-monitor/internal/akashclient"
-	"github.com/akash-network/price-feed-monitor/internal/alerting"
-	"github.com/akash-network/price-feed-monitor/internal/config"
-	"github.com/akash-network/price-feed-monitor/internal/guardian"
-	"github.com/akash-network/price-feed-monitor/internal/types"
+	"github.com/chainzero/akash-bme-monitor/internal/akashclient"
+	"github.com/chainzero/akash-bme-monitor/internal/alerting"
+	"github.com/chainzero/akash-bme-monitor/internal/config"
+	"github.com/chainzero/akash-bme-monitor/internal/guardian"
+	"github.com/chainzero/akash-bme-monitor/internal/types"
 )
 
 // Reporter posts startup and scheduled health summaries to Slack.

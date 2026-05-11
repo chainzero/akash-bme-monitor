@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/akash-network/price-feed-monitor/internal/akashclient"
+	"github.com/chainzero/akash-bme-monitor/internal/akashclient"
 )
 
 // guardianSetInfoQuery is the base64-encoded CosmWasm smart query {"guardian_set_info": {}}.

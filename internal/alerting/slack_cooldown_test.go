@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/akash-network/price-feed-monitor/internal/types"
+	"github.com/chainzero/akash-bme-monitor/internal/types"
 )
 
 // newSlackWithCooldown creates a Slack instance and pre-populates a cooldown

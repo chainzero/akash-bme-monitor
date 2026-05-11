@@ -9,9 +9,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/akash-network/price-feed-monitor/internal/alerting"
-	"github.com/akash-network/price-feed-monitor/internal/config"
-	"github.com/akash-network/price-feed-monitor/internal/types"
+	"github.com/chainzero/akash-bme-monitor/internal/alerting"
+	"github.com/chainzero/akash-bme-monitor/internal/config"
+	"github.com/chainzero/akash-bme-monitor/internal/types"
 )
 
 // rssItem maps to an <item> element in the Discourse RSS feed.

@@ -1,4 +1,4 @@
-module github.com/akash-network/price-feed-monitor
+module github.com/chainzero/akash-bme-monitor
 
 go 1.25.0
 

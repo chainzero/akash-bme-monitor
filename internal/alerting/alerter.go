@@ -1,6 +1,6 @@
 package alerting
 
-import "github.com/akash-network/price-feed-monitor/internal/types"
+import "github.com/chainzero/akash-bme-monitor/internal/types"
 
 // Alerter is the interface implemented by all alert backends (Slack, SendGrid, etc.).
 // Monitors accept an Alerter so additional backends can be added without modifying them.

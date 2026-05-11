@@ -3,7 +3,7 @@ package alerting
 import (
 	"testing"
 
-	"github.com/akash-network/price-feed-monitor/internal/types"
+	"github.com/chainzero/akash-bme-monitor/internal/types"
 )
 
 // mockAlerter records every call made to it.

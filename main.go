@@ -10,15 +10,15 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/akash-network/price-feed-monitor/internal/alerting"
-	"github.com/akash-network/price-feed-monitor/internal/announcements"
-	"github.com/akash-network/price-feed-monitor/internal/bme"
-	"github.com/akash-network/price-feed-monitor/internal/config"
-	"github.com/akash-network/price-feed-monitor/internal/guardian"
-	"github.com/akash-network/price-feed-monitor/internal/hermes"
-	"github.com/akash-network/price-feed-monitor/internal/oracle"
-	"github.com/akash-network/price-feed-monitor/internal/report"
-	"github.com/akash-network/price-feed-monitor/internal/types"
+	"github.com/chainzero/akash-bme-monitor/internal/alerting"
+	"github.com/chainzero/akash-bme-monitor/internal/announcements"
+	"github.com/chainzero/akash-bme-monitor/internal/bme"
+	"github.com/chainzero/akash-bme-monitor/internal/config"
+	"github.com/chainzero/akash-bme-monitor/internal/guardian"
+	"github.com/chainzero/akash-bme-monitor/internal/hermes"
+	"github.com/chainzero/akash-bme-monitor/internal/oracle"
+	"github.com/chainzero/akash-bme-monitor/internal/report"
+	"github.com/chainzero/akash-bme-monitor/internal/types"
 )
 
 func main() {

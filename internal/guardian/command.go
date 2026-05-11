@@ -3,7 +3,7 @@ package guardian
 import (
 	"fmt"
 
-	"github.com/akash-network/price-feed-monitor/internal/config"
+	"github.com/chainzero/akash-bme-monitor/internal/config"
 )
 
 // buildSubmitCommand returns a copy-paste ready shell snippet to submit a guardian

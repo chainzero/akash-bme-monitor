@@ -10,10 +10,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/akash-network/price-feed-monitor/internal/akashclient"
-	"github.com/akash-network/price-feed-monitor/internal/alerting"
-	"github.com/akash-network/price-feed-monitor/internal/config"
-	"github.com/akash-network/price-feed-monitor/internal/types"
+	"github.com/chainzero/akash-bme-monitor/internal/akashclient"
+	"github.com/chainzero/akash-bme-monitor/internal/alerting"
+	"github.com/chainzero/akash-bme-monitor/internal/config"
+	"github.com/chainzero/akash-bme-monitor/internal/types"
 )
 
 // StatusMonitor implements Component 6: BME (Burn Mint Equilibrium) Status Monitor.

@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/akash-network/price-feed-monitor/internal/types"
+	"github.com/chainzero/akash-bme-monitor/internal/types"
 	"github.com/slack-go/slack"
 )
 
