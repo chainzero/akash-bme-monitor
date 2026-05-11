@@ -92,7 +92,7 @@ func printSlackPreview(w io.Writer, targetIndex uint32, ethTxHash, vaaBase64 str
 			"the moment the rotation went live. Act immediately.\n\n",
 	)
 	fmt.Fprintf(&body, "--- %s ---\n", strings.ToUpper(mockNetwork.Name))
-	fmt.Fprintf(&body, buildSubmitCommand(mockNetwork, vaaBase64))
+	fmt.Fprint(&body, buildSubmitCommand(mockNetwork, vaaBase64))
 
 	border := strings.Repeat("─", 72)
 	fmt.Fprintf(w, "\n--- Slack Alert Preview (rotation) ---\n")

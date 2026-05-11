@@ -224,7 +224,7 @@ func (m *WormholescanMonitor) sendRotationAlert(ctx context.Context, previousInd
 		)
 		for _, network := range m.networks {
 			fmt.Fprintf(&body, "--- %s ---\n", strings.ToUpper(network.Name))
-			fmt.Fprintf(&body, buildSubmitCommand(network, vaaBase64))
+			fmt.Fprint(&body, buildSubmitCommand(network, vaaBase64))
 			fmt.Fprintf(&body, "\n")
 		}
 	}
@@ -329,7 +329,7 @@ func (m *WormholescanMonitor) compareWithNetwork(
 		)
 	} else {
 		fmt.Fprintf(&body, "Run this command to update:\n\n")
-		fmt.Fprintf(&body, buildSubmitCommand(network, vaaBase64))
+		fmt.Fprint(&body, buildSubmitCommand(network, vaaBase64))
 	}
 
 	m.alerter.Send(types.Alert{

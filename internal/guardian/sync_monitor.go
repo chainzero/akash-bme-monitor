@@ -284,7 +284,7 @@ func (m *SyncMonitor) compareWithNetwork(
 			fmt.Fprintf(&body, "  curl -s \"https://api.wormholescan.io/api/v1/vaas/1/0000000000000000000000000000000000000000000000000000000000000004?pageSize=5\" | jq -r '.data[0].vaa'\n")
 		} else {
 			fmt.Fprintf(&body, "\nRun this command to update:\n\n")
-			fmt.Fprintf(&body, buildSubmitCommand(network, vaaBase64))
+			fmt.Fprint(&body, buildSubmitCommand(network, vaaBase64))
 		}
 
 		m.alerter.Send(types.Alert{
@@ -353,7 +353,7 @@ func (m *SyncMonitor) sendRotationAlert(ctx context.Context, previousIndex, newI
 		)
 		for _, network := range m.networks {
 			fmt.Fprintf(&body, "--- %s ---\n", strings.ToUpper(network.Name))
-			fmt.Fprintf(&body, buildSubmitCommand(network, vaaBase64))
+			fmt.Fprint(&body, buildSubmitCommand(network, vaaBase64))
 			fmt.Fprintf(&body, "\n")
 		}
 	}
