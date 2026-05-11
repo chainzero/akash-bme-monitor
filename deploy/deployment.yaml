@@ -38,15 +38,6 @@ spec:
                   name: price-feed-monitor-secrets
                   key: slack-webhook-url
 
-            # SendGrid API key — sourced from Secret. Optional: if absent, email
-            # alerting is disabled even when email.enabled=true in the configmap.
-            - name: SENDGRID_API_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: price-feed-monitor-secrets
-                  key: sendgrid-api-key
-                  optional: true
-
             # Etherscan API key — used to retrieve guardian set upgrade VAAs from
             # Ethereum transaction calldata when a guardian rotation is detected.
             # Optional: if absent, VAA retrieval falls back to Wormholescan.

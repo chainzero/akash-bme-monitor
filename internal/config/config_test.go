@@ -128,40 +128,6 @@ func TestLoad_EnvOverrideSlackWebhook(t *testing.T) {
 	}
 }
 
-func TestLoad_EnvOverrideSendGridKey(t *testing.T) {
-	path := writeTemp(t, minimalConfig)
-	t.Setenv("SENDGRID_API_KEY", "SG.test-key")
-	cfg, err := Load(path)
-	if err != nil {
-		t.Fatalf("Load() unexpected error: %v", err)
-	}
-	if cfg.Email.APIKey != "SG.test-key" {
-		t.Errorf("Email.APIKey = %q, want SG.test-key", cfg.Email.APIKey)
-	}
-}
-
-func TestLoad_EmailAPIKeyNotInYAML(t *testing.T) {
-	// Even if someone puts sendgrid_api_key in the YAML it should be ignored
-	// because the field has yaml:"-". The only way to set it is via env var.
-	yaml := minimalConfig + `
-email:
-  enabled: true
-  from: "test@example.com"
-  to:
-    - "test@example.com"
-  min_severity: "warning"
-`
-	path := writeTemp(t, yaml)
-	// No env var set — APIKey should be empty.
-	cfg, err := Load(path)
-	if err != nil {
-		t.Fatalf("Load() unexpected error: %v", err)
-	}
-	if cfg.Email.APIKey != "" {
-		t.Errorf("Email.APIKey should be empty without env var, got %q", cfg.Email.APIKey)
-	}
-}
-
 func TestDurationUnmarshal(t *testing.T) {
 	cases := []struct {
 		yaml string

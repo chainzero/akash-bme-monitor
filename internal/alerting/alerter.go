@@ -2,7 +2,7 @@ package alerting
 
 import "github.com/chainzero/akash-bme-monitor/internal/types"
 
-// Alerter is the interface implemented by all alert backends (Slack, SendGrid, etc.).
+// Alerter is the interface implemented by all alert backends.
 // Monitors accept an Alerter so additional backends can be added without modifying them.
 type Alerter interface {
 	// Send posts an alert. Implementations may apply cooldown/dedup logic.
