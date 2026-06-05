@@ -83,6 +83,6 @@ data:
       - name: testnet-reclamation
         chain_id: "testnet-reclamation"
         akash_api:
-          - "https://testnetreclamationrpc.akashnet.net:443"
+          - "https://testnetreclamationapi.akashnet.net"
         wormhole_contract: "akash14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9sggdamt"
         hermes_relayers: []
