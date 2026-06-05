@@ -17,12 +17,6 @@ data:
       webhook_url: "placeholder-overridden-by-secret"
       channel: "#akash-bme-monitor-testnet"
 
-    email:
-      enabled: false
-      from: ""
-      to: []
-      min_severity: "warning"
-
     report:
       timezone: "America/Chicago"
       schedule_times:
@@ -86,8 +80,9 @@ data:
         poll_interval: 1h
 
     networks:
-      - name: testnet-oracle
+      - name: testnet-reclamation
+        chain_id: "testnet-reclamation"
         akash_api:
-          - "https://testnetoracleapi.akashnet.net"
+          - "https://testnetreclamationrpc.akashnet.net:443"
         wormhole_contract: "akash14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9sggdamt"
         hermes_relayers: []
