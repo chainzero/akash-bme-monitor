@@ -72,12 +72,14 @@ type OraclePriceID struct {
 	Denom     string `json:"denom"`
 	BaseDenom string `json:"base_denom"`
 	Source    int    `json:"source"`
-	Height    string `json:"height"`
+	Height    string `json:"height"`    // v1 only
+	Sequence  string `json:"sequence"`  // v2 only
+	Timestamp string `json:"timestamp"` // v2: timestamp moved here from State
 }
 
 type OraclePriceState struct {
 	Price     string `json:"price"`
-	Timestamp string `json:"timestamp"`
+	Timestamp string `json:"timestamp"` // v1 only; v2 uses ID.Timestamp
 }
 
 // --- Hermes health types ---

@@ -27,6 +27,7 @@ data:
     oracle_price_monitor:
       enabled: true
       poll_interval: 60s
+      oracle_api_version: "v2"
       thresholds:
         warning_age: 5m
         critical_age: 15m

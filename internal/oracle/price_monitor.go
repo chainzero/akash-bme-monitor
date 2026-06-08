@@ -84,21 +84,33 @@ func (m *PriceMonitor) checkPrice(ctx context.Context) {
 		return
 	}
 
-	ts, err := time.Parse(time.RFC3339, price.State.Timestamp)
+	// v2 moves the timestamp into id; v1 keeps it in state.
+	rawTS := price.ID.Timestamp
+	if rawTS == "" {
+		rawTS = price.State.Timestamp
+	}
+
+	ts, err := time.Parse(time.RFC3339, rawTS)
 	if err != nil {
 		m.logger.Error("failed to parse price timestamp",
-			"timestamp", price.State.Timestamp, "error", err)
+			"timestamp", rawTS, "error", err)
 		return
 	}
 
 	age := time.Since(ts.UTC())
 	alertKey := fmt.Sprintf("oracle_price_stale_%s", m.network.Name)
 
+	// v2 uses sequence instead of height.
+	heightOrSeq := price.ID.Height
+	if heightOrSeq == "" {
+		heightOrSeq = price.ID.Sequence
+	}
+
 	m.logger.Info("price check",
 		"price_usd", price.State.Price,
-		"timestamp", price.State.Timestamp,
+		"timestamp", rawTS,
 		"age", age.Round(time.Second),
-		"height", price.ID.Height,
+		"height", heightOrSeq,
 	)
 
 	switch {
@@ -118,9 +130,9 @@ func (m *PriceMonitor) checkPrice(ctx context.Context) {
 					"  docker logs hermes-client\n"+
 					"  docker restart hermes-client",
 				m.network.Name,
-				price.State.Timestamp, formatAge(age),
+				rawTS, formatAge(age),
 				price.State.Price,
-				price.ID.Height,
+				heightOrSeq,
 				m.cfg.Thresholds.EmergencyAge.Duration,
 			),
 		})
@@ -139,9 +151,9 @@ func (m *PriceMonitor) checkPrice(ctx context.Context) {
 					"Check Hermes relayer logs.\n"+
 					"  docker logs --tail 50 hermes-client",
 				m.network.Name,
-				price.State.Timestamp, formatAge(age),
+				rawTS, formatAge(age),
 				price.State.Price,
-				price.ID.Height,
+				heightOrSeq,
 			),
 		})
 
@@ -157,9 +169,9 @@ func (m *PriceMonitor) checkPrice(ctx context.Context) {
 					"Block height: %s\n\n"+
 					"Action required: Check Hermes relayer status.",
 				m.network.Name,
-				price.State.Timestamp, formatAge(age),
+				rawTS, formatAge(age),
 				price.State.Price,
-				price.ID.Height,
+				heightOrSeq,
 			),
 		})
 
@@ -174,7 +186,7 @@ func (m *PriceMonitor) checkPrice(ctx context.Context) {
 					"Last update: %s (%s ago)\n"+
 					"Last price: $%s AKT/USD",
 				m.network.Name,
-				price.State.Timestamp, formatAge(age),
+				rawTS, formatAge(age),
 				price.State.Price,
 			),
 		)
@@ -182,8 +194,11 @@ func (m *PriceMonitor) checkPrice(ctx context.Context) {
 }
 
 func (m *PriceMonitor) fetchLatestPrice(ctx context.Context) (*types.OraclePrice, error) {
-	resp, err := akashclient.Fetch(ctx, m.client, m.network.AkashAPINodes,
-		"/akash/oracle/v1/prices?pagination.limit=1")
+	path := "/akash/oracle/v1/prices?pagination.limit=1"
+	if m.cfg.OracleAPIVersion == "v2" {
+		path = "/akash/oracle/v2/prices"
+	}
+	resp, err := akashclient.Fetch(ctx, m.client, m.network.AkashAPINodes, path)
 	if err != nil {
 		return nil, err
 	}

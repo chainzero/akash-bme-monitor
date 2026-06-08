@@ -36,9 +36,10 @@ type SlackConfig struct {
 }
 
 type OraclePriceConfig struct {
-	Enabled      bool            `yaml:"enabled"`
-	PollInterval Duration        `yaml:"poll_interval"`
-	Thresholds   PriceThresholds `yaml:"thresholds"`
+	Enabled        bool            `yaml:"enabled"`
+	PollInterval   Duration        `yaml:"poll_interval"`
+	Thresholds     PriceThresholds `yaml:"thresholds"`
+	OracleAPIVersion string        `yaml:"oracle_api_version"` // "v1" (default) or "v2"
 }
 
 type PriceThresholds struct {
