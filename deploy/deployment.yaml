@@ -22,7 +22,7 @@ spec:
 
       containers:
         - name: price-feed-monitor
-          image: scarruthers/price-feed-monitor:v15
+          image: scarruthers/price-feed-monitor:v18
           imagePullPolicy: Always
 
           env:

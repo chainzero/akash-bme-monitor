@@ -297,7 +297,12 @@ func (r *Reporter) appendGuardianStatus(
 }
 
 func (r *Reporter) fetchOraclePrice(ctx context.Context, nodes []string) (price float64, age time.Duration, err error) {
-	resp, err := akashclient.Fetch(ctx, r.client, nodes, "/akash/oracle/v1/prices?pagination.limit=1")
+	path := "/akash/oracle/v1/prices?pagination.limit=1"
+	if r.cfg.OraclePriceMonitor.OracleAPIVersion == "v2" {
+		path = "/akash/oracle/v2/prices"
+	}
+
+	resp, err := akashclient.Fetch(ctx, r.client, nodes, path)
 	if err != nil {
 		return 0, 0, err
 	}
@@ -316,7 +321,11 @@ func (r *Reporter) fetchOraclePrice(ctx context.Context, nodes []string) (price 
 	}
 
 	p := result.Prices[0]
-	ts, err := time.Parse(time.RFC3339, p.State.Timestamp)
+	rawTS := p.ID.Timestamp
+	if rawTS == "" {
+		rawTS = p.State.Timestamp
+	}
+	ts, err := time.Parse(time.RFC3339, rawTS)
 	if err != nil {
 		return 0, 0, fmt.Errorf("parse timestamp: %w", err)
 	}
