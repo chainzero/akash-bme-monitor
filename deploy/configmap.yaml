@@ -22,13 +22,6 @@ data:
       webhook_url: "placeholder-overridden-by-secret"
       channel: "#akash-bme-monitor"
 
-    email:
-      enabled: true
-      from: "support@akash.network"
-      to:
-        - "support@akash.network"
-      min_severity: "warning"
-
     report:
       timezone: "America/Chicago"
       schedule_times:
