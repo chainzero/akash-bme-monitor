@@ -17,6 +17,7 @@ import (
 	"github.com/chainzero/akash-bme-monitor/internal/hermes"
 	"github.com/chainzero/akash-bme-monitor/internal/oracle"
 	"github.com/chainzero/akash-bme-monitor/internal/report"
+	"github.com/chainzero/akash-bme-monitor/internal/router"
 )
 
 func main() {
@@ -97,6 +98,13 @@ func main() {
 		wm := guardian.NewWormholescanMonitor(cfg.WormholescanMonitor, cfg.Networks, cfg.GuardianSetMonitor.EtherscanAPIKey, alerter, logger)
 		go wm.Run(ctx)
 		slog.Info("wormholescan guardian set monitor enabled")
+	}
+
+	// Component 7: Pyth Router Set Currency (replaces Components 3 & 5 after Pyth core upgrade)
+	if cfg.RouterSetMonitor.Enabled {
+		rm := router.NewRouterSetMonitor(cfg.RouterSetMonitor, cfg.Networks, alerter, logger)
+		go rm.Run(ctx)
+		slog.Info("router set monitor enabled")
 	}
 
 	// Component 4: Guardian Update Announcements

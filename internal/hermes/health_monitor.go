@@ -151,7 +151,52 @@ func (m *HealthMonitor) checkRelayer(ctx context.Context, relayer config.Relayer
 		return
 	}
 
-	// Relayer is running — check for config mismatches.
+	// Relayer is running — check whether price submissions have stalled.
+	if m.cfg.LastPriceUpdateMaxAge.Duration > 0 && health.LastPriceUpdateAt != "" {
+		stallKey := fmt.Sprintf("hermes_price_stalled_%s_%s", m.network.Name, relayer.Name)
+		ts, err := time.Parse(time.RFC3339, health.LastPriceUpdateAt)
+		if err != nil {
+			m.logger.Warn("could not parse lastPriceUpdateAt", "relayer", relayer.Name, "value", health.LastPriceUpdateAt, "error", err)
+		} else {
+			age := time.Since(ts.UTC())
+			if age > m.cfg.LastPriceUpdateMaxAge.Duration {
+				m.logger.Warn("hermes price submissions stalled",
+					"relayer", relayer.Name,
+					"last_price_update_at", health.LastPriceUpdateAt,
+					"age", age.Round(time.Second),
+				)
+				m.alerter.Send(types.Alert{
+					Key:      stallKey,
+					Severity: types.SeverityCritical,
+					Title:    fmt.Sprintf("HERMES PRICE SUBMISSIONS STALLED — %s", relayer.Name),
+					Body: fmt.Sprintf(
+						"Network: %s\nRelayer: %s\n\n"+
+							"Status: isRunning=true but no on-chain price submission for %s\n"+
+							"Last submission: %s\n"+
+							"Last Hermes price received: %s\n\n"+
+							"Possible causes: API key expired, contract rejection (wrong router set index), or chain tx failure.\n"+
+							"Action required:\n"+
+							"  Check relayer logs for submission errors\n"+
+							"  Verify HC_HERMES_API_KEY is valid\n"+
+							"  Verify HC_CONTRACT_ADDRESS points to pyth-pro",
+						m.network.Name, relayer.Name,
+						age.Round(time.Second),
+						health.LastPriceUpdateAt,
+						health.LastPriceUpdateReceivedAt,
+					),
+				})
+			} else {
+				m.alerter.Resolve(
+					stallKey,
+					fmt.Sprintf("HERMES PRICE SUBMISSIONS RESUMED — %s", relayer.Name),
+					fmt.Sprintf("Network: %s\nRelayer: %s\n\nPrice submissions are flowing normally.\nLast submission: %s",
+						m.network.Name, relayer.Name, health.LastPriceUpdateAt),
+				)
+			}
+		}
+	}
+
+	// Check for config mismatches.
 	mismatches := m.detectMismatches(relayer, health)
 	if len(mismatches) > 0 {
 		m.logger.Warn("hermes relayer config mismatch",

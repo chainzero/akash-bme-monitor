@@ -43,6 +43,7 @@ data:
       enabled: true
       poll_interval: 30s
       consecutive_failures_threshold: 3
+      last_price_update_max_age: 2m
 
     # Component 3: Guardian Set Currency (Ethereum RPC)
     guardian_set_monitor:

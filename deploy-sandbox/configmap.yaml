@@ -33,25 +33,34 @@ data:
         critical_age: 15m
         emergency_age: 30m
 
-    # Component 2: Hermes Relayer Health — disabled, no relayers on sandbox
+    # Component 2: Hermes Relayer Health
     hermes_health_monitor:
-      enabled: false
+      enabled: true
       poll_interval: 30s
       consecutive_failures_threshold: 3
+      last_price_update_max_age: 2m
 
-    # Component 3: Guardian Set Currency (Ethereum RPC)
+    # Component 3: Guardian Set Currency (Ethereum RPC) — disabled post-Pyth core upgrade
     guardian_set_monitor:
-      enabled: true
+      enabled: false
       poll_interval: 10m
       ethereum_rpc: "https://ethereum-rpc.publicnode.com"
       wormhole_contract: "0x98f3c9e6E3fAce36bAAd05FE09d375Ef1464288B"
 
-    # Component 5: Wormholescan Guardian Set Monitor
+    # Component 5: Wormholescan Guardian Set Monitor — disabled post-Pyth core upgrade
     wormholescan_monitor:
-      enabled: true
+      enabled: false
       poll_interval: 30m
       api_base_url: "https://api.wormholescan.io"
       governance_emitter: "0000000000000000000000000000000000000000000000000000000000000004"
+
+    # Component 7: Pyth Router Set Currency (replaces Components 3 & 5 after Pyth core upgrade)
+    router_set_monitor:
+      enabled: true
+      poll_interval: 10m
+      hermes_api_url: "https://pyth.dourolabs.app/hermes"
+      price_feed_id: "0x4ea5bb4d2f5900cc2e97ba534240950740b4d3b89fe712a94a7304fd2fd92702"
+      # hermes_api_key loaded from PYTH_API_KEY env var (secret)
 
     # Component 6: BME Status Monitor
     bme_monitor:
@@ -85,4 +94,13 @@ data:
         akash_api:
           - "https://api.sandbox-2.aksh.pw:443"
         wormhole_contract: "akash14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9sggdamt"
-        hermes_relayers: []
+        pyth_vaa_contract: "akash1fyr2mptjswz4w6xmgnpgm93x0q4s4wdl6srv3rtz3utc4f6fmxeqps4ws5"
+        hermes_relayers:
+          - name: hermes-relayer-sandbox
+            health_endpoint: "https://hermes.sandbox-2.aksh.pw/health"
+            wallet: "akash1dggp8dr2e8r8fmqcnkef4fjncxj2m45awps2lm"
+            info_wallet_balance: 1000000000  # 1000 AKT — Info alert
+            warn_wallet_balance: 500000000   # 500 AKT  — Warning alert
+            min_wallet_balance: 100000000    # 100 AKT  — Critical alert
+            expected_price_feed_id: "0x4ea5bb4d2f5900cc2e97ba534240950740b4d3b89fe712a94a7304fd2fd92702"
+            expected_contract_address: "akash1w27ekqvvtzfanfxnkw4jx2f8gdfeqwd3drkee3e64xat6phwjg0sk8dnk3"

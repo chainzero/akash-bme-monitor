@@ -16,6 +16,7 @@ type Config struct {
 	HermesHealthMonitor  HermesHealthConfig `yaml:"hermes_health_monitor"`
 	GuardianSetMonitor   GuardianSetConfig  `yaml:"guardian_set_monitor"`
 	WormholescanMonitor  WormholescanConfig `yaml:"wormholescan_monitor"`
+	RouterSetMonitor     RouterSetConfig    `yaml:"router_set_monitor"`
 	BMEMonitor           BMEConfig          `yaml:"bme_monitor"`
 	AnnouncementMonitor  AnnouncementConfig `yaml:"announcement_monitor"`
 	Networks             []NetworkConfig    `yaml:"networks"`
@@ -52,6 +53,7 @@ type HermesHealthConfig struct {
 	Enabled                      bool     `yaml:"enabled"`
 	PollInterval                 Duration `yaml:"poll_interval"`
 	ConsecutiveFailuresThreshold int      `yaml:"consecutive_failures_threshold"`
+	LastPriceUpdateMaxAge        Duration `yaml:"last_price_update_max_age"`
 }
 
 type GuardianSetConfig struct {
@@ -81,6 +83,21 @@ type WormholescanConfig struct {
 	// used for all guardian set upgrade governance VAAs since Wormhole mainnet launch.
 	// Standard value: 0000000000000000000000000000000000000000000000000000000000000004
 	GovernanceEmitter string `yaml:"governance_emitter"`
+}
+
+// RouterSetConfig configures the Pyth router set currency monitor, which replaces
+// the Wormhole guardian set monitors (Components 3 & 5) after the Pyth core upgrade.
+type RouterSetConfig struct {
+	Enabled      bool     `yaml:"enabled"`
+	PollInterval Duration `yaml:"poll_interval"`
+	// HermesAPIURL is the base URL of the authenticated Pyth Hermes endpoint.
+	// Example: "https://pyth.dourolabs.app/hermes"
+	HermesAPIURL string `yaml:"hermes_api_url"`
+	// PriceFeedID is the price feed used to fetch a live VAA for router set index
+	// decoding. Any feed works; AKT/USD is the natural choice.
+	PriceFeedID string `yaml:"price_feed_id"`
+	// HermesAPIKey is loaded from the PYTH_API_KEY env var — never set in config.yaml.
+	HermesAPIKey string `yaml:"-"`
 }
 
 // BMEConfig configures Component 6: the Burn Mint Equilibrium status monitor.
@@ -129,6 +146,9 @@ type NetworkConfig struct {
 	// Configure multiple nodes for redundancy against single-node outages.
 	AkashAPINodes    []string        `yaml:"akash_api"`
 	WormholeContract string          `yaml:"wormhole_contract"`
+	// PythVAAContract is the pyth-vaa CosmWasm contract address (post-Pyth core upgrade).
+	// Replaces WormholeContract for router set index verification.
+	PythVAAContract  string          `yaml:"pyth_vaa_contract"`
 	HermesRelayers   []RelayerConfig `yaml:"hermes_relayers"`
 	// OperatorAddress is the --from value for akash tx wasm execute when submitting
 	// a guardian set upgrade VAA. Included verbatim in rotation alert commands.
@@ -197,6 +217,9 @@ func Load(path string) (*Config, error) {
 	}
 	if v := os.Getenv("ETHERSCAN_API_KEY"); v != "" {
 		cfg.GuardianSetMonitor.EtherscanAPIKey = v
+	}
+	if v := os.Getenv("PYTH_API_KEY"); v != "" {
+		cfg.RouterSetMonitor.HermesAPIKey = v
 	}
 
 	if err := cfg.validate(); err != nil {
