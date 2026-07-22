@@ -19,8 +19,7 @@ const getConfigQuery = "eyJnZXRfY29uZmlnIjp7fX0="
 type pythVAAConfigResponse struct {
 	Data struct {
 		RouterVerifier struct {
-			RouterSetIndex uint32   `json:"router_set_index"`
-			Routers        []string `json:"routers"`
+			RouterSetIndex uint32 `json:"router_set_index"`
 		} `json:"router_verifier"`
 	} `json:"data"`
 }
