@@ -15,6 +15,7 @@ import (
 	"github.com/chainzero/akash-bme-monitor/internal/alerting"
 	"github.com/chainzero/akash-bme-monitor/internal/config"
 	"github.com/chainzero/akash-bme-monitor/internal/guardian"
+	"github.com/chainzero/akash-bme-monitor/internal/router"
 	"github.com/chainzero/akash-bme-monitor/internal/types"
 )
 
@@ -100,6 +101,18 @@ func (r *Reporter) post(ctx context.Context, header string) {
 		globalGuardianIndex, globalGuardianAddresses, globalGuardianErr = wsClient.GetCurrentGuardianSet(ctx)
 	}
 
+	// Fetch live Hermes router set index once — shared across all networks.
+	var liveRouterIndex uint32
+	var liveRouterErr error
+	if r.cfg.RouterSetMonitor.Enabled {
+		hermesClient := router.NewHermesClient(
+			r.cfg.RouterSetMonitor.HermesAPIURL,
+			r.cfg.RouterSetMonitor.HermesAPIKey,
+			r.cfg.RouterSetMonitor.PriceFeedID,
+		)
+		liveRouterIndex, liveRouterErr = hermesClient.GetCurrentRouterSetIndex(ctx)
+	}
+
 	for _, network := range r.cfg.Networks {
 		fmt.Fprintf(&b, "━━━ Network: %s ━━━\n\n", network.Name)
 
@@ -130,9 +143,16 @@ func (r *Reporter) post(ctx context.Context, header string) {
 			r.appendBMEStatus(ctx, &b, network.AkashAPINodes)
 		}
 
-		// Guardian set status
-		r.appendGuardianStatus(ctx, &b, network,
-			globalGuardianIndex, globalGuardianAddresses, globalGuardianErr)
+		// Guardian set status (old model — shown only when Components 3/5 are enabled)
+		if r.cfg.GuardianSetMonitor.Enabled || r.cfg.WormholescanMonitor.Enabled {
+			r.appendGuardianStatus(ctx, &b, network,
+				globalGuardianIndex, globalGuardianAddresses, globalGuardianErr)
+		}
+
+		// Router set status (new model — post-Pyth core upgrade, Component 7)
+		if r.cfg.RouterSetMonitor.Enabled {
+			r.appendRouterSetStatus(ctx, &b, network, liveRouterIndex, liveRouterErr)
+		}
 	}
 
 	// Pyth forum monitoring note
@@ -140,7 +160,7 @@ func (r *Reporter) post(ctx context.Context, header string) {
 		fmt.Fprintf(&b, "\nPyth Forum: ✅ monitoring active\n")
 	}
 
-	r.appendAPIHealthChecks(ctx, &b)
+	r.appendAPIHealthChecks(ctx, &b, liveRouterErr)
 
 	r.alerter.Post(header, b.String())
 }
@@ -385,23 +405,73 @@ func (r *Reporter) fetchWalletBalance(ctx context.Context, nodes []string, addre
 	return 0, nil
 }
 
-func (r *Reporter) appendAPIHealthChecks(ctx context.Context, b *strings.Builder) {
+func (r *Reporter) appendRouterSetStatus(
+	ctx context.Context,
+	b *strings.Builder,
+	network config.NetworkConfig,
+	liveIndex uint32,
+	liveErr error,
+) {
+	if liveErr != nil {
+		fmt.Fprintf(b, "Router Set: ❌ Hermes unreachable (%s)\n\n", liveErr)
+		return
+	}
+
+	if network.PythVAAContract == "" {
+		fmt.Fprintf(b, "Router Set: live index %d  |  pyth-vaa contract not configured\n\n", liveIndex)
+		return
+	}
+
+	vaaClient := router.NewPythVAAClient(network.AkashAPINodes, network.Name, network.PythVAAContract)
+	contractIndex, err := vaaClient.GetRouterSetIndex(ctx)
+	if err != nil {
+		fmt.Fprintf(b, "Router Set: ⚠️ live index %d  |  pyth-vaa: ❌ unreachable (%s)\n\n", liveIndex, err)
+		return
+	}
+
+	if contractIndex == liveIndex {
+		fmt.Fprintf(b, "Router Set: ✅ index %d  |  pyth-vaa in sync\n\n", liveIndex)
+	} else {
+		fmt.Fprintf(b, "Router Set: 🔴 index mismatch  |  Hermes: %d  pyth-vaa: %d  |  OUT OF SYNC\n\n",
+			liveIndex, contractIndex)
+	}
+}
+
+func (r *Reporter) appendAPIHealthChecks(ctx context.Context, b *strings.Builder, liveRouterErr error) {
+	showEtherscan := r.cfg.GuardianSetMonitor.Enabled
+	showPyth := r.cfg.RouterSetMonitor.Enabled
+
+	if !showEtherscan && !showPyth {
+		return
+	}
+
 	fmt.Fprintf(b, "\n━━━ Required API Health Checks ━━━\n\n")
 
-	// Etherscan — required for automatic VAA retrieval on guardian set rotation.
-	// If this key is missing or expired, the monitoring app cannot auto-generate
-	// the submit_v_a_a command and operators will need to retrieve the VAA manually.
-	apiKey := r.cfg.GuardianSetMonitor.EtherscanAPIKey
-	ethClient := guardian.NewEtherscanClient(apiKey, r.cfg.GuardianSetMonitor.WormholeContract)
-	if err := ethClient.CheckAPIKey(ctx); err != nil {
-		fmt.Fprintf(b, "Etherscan API: ❌ %s\n", err)
-		if apiKey == "" {
-			fmt.Fprintf(b, "  → Set the ETHERSCAN_API_KEY environment variable in the k8s secret\n")
+	if showEtherscan {
+		apiKey := r.cfg.GuardianSetMonitor.EtherscanAPIKey
+		ethClient := guardian.NewEtherscanClient(apiKey, r.cfg.GuardianSetMonitor.WormholeContract)
+		if err := ethClient.CheckAPIKey(ctx); err != nil {
+			fmt.Fprintf(b, "Etherscan API: ❌ %s\n", err)
+			if apiKey == "" {
+				fmt.Fprintf(b, "  → Set the ETHERSCAN_API_KEY environment variable in the k8s secret\n")
+			} else {
+				fmt.Fprintf(b, "  → Key may be expired or rate-limited — check ETHERSCAN_API_KEY in the k8s secret\n")
+			}
 		} else {
-			fmt.Fprintf(b, "  → Key may be expired or rate-limited — check ETHERSCAN_API_KEY in the k8s secret\n")
+			fmt.Fprintf(b, "Etherscan API: ✅ operational\n")
 		}
-	} else {
-		fmt.Fprintf(b, "Etherscan API: ✅ operational\n")
+	}
+
+	if showPyth {
+		if liveRouterErr != nil {
+			keyNote := ""
+			if r.cfg.RouterSetMonitor.HermesAPIKey == "" {
+				keyNote = " (no API key set)"
+			}
+			fmt.Fprintf(b, "Pyth Hermes API: ❌ unreachable%s\n", keyNote)
+		} else {
+			fmt.Fprintf(b, "Pyth Hermes API: ✅ operational\n")
+		}
 	}
 
 	fmt.Fprintln(b)
