@@ -22,7 +22,7 @@ spec:
 
       containers:
         - name: price-feed-monitor
-          image: scarruthers/price-feed-monitor:v18
+          image: scarruthers/price-feed-monitor:v21
           imagePullPolicy: Always
 
           env:
@@ -46,6 +46,15 @@ spec:
                 secretKeyRef:
                   name: price-feed-monitor-secrets
                   key: etherscan-api-key
+                  optional: true
+
+            # Pyth API key — authenticates requests to pyth.dourolabs.app/hermes
+            # for router set index monitoring (Component 7).
+            - name: PYTH_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: price-feed-monitor-secrets
+                  key: pyth-api-key
                   optional: true
 
           resources:
