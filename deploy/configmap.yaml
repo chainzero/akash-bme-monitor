@@ -107,8 +107,7 @@ data:
           - "https://akash-api.polkachu.com:443"
           - "https://akash.c29r3.xyz:443/api"
         wormhole_contract: "akash14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9sggdamt"
-        # pyth-vaa contract — fill in after upgrade (see UPGRADE-RUNBOOK.md Step 2)
-        pyth_vaa_contract: "FILL_IN_PYTH_VAA_CONTRACT_MAINNET"
+        pyth_vaa_contract: "akash1zwv6feuzhy6a9wekh96cd57lsarmqlwxdypdsplw6zhfncqw6ftqucuysk"
         hermes_relayers:
           # --- Existing relayers (old wormhole/pyth-wasm contracts) ---
           # These remain active ~2 weeks post-upgrade. Leave in place during transition.
@@ -136,30 +135,29 @@ data:
             min_wallet_balance: 100000000
             expected_price_feed_id: "0x4ea5bb4d2f5900cc2e97ba534240950740b4d3b89fe712a94a7304fd2fd92702"
             expected_contract_address: "akash1nc5tatafv6eyq7llkr2gv50ff9e22mnf70qgjlv737ktmt4eswrqyagled"
-          # --- New relayers (new pyth-vaa/pyth-pro contracts — added after upgrade) ---
-          # Obtain health_endpoint, wallet, and expected_contract_address from Pyth/Douro Labs.
-          # Uncomment each block and fill in values, then apply (see UPGRADE-RUNBOOK.md Step 3).
-          #- name: hermes-relayer-new-01
-          #  health_endpoint: "FILL_IN_NEW_RELAYER_01_HEALTH_URL"
-          #  wallet: "FILL_IN_NEW_RELAYER_01_WALLET"
+          # --- New relayers (new pyth-pro contract) ---
+          - name: hermes-relayer-04
+            health_endpoint: "https://hermesrelayerprod4.akash.pub/health"
+            wallet: "akash1plnnughn6kvmtz6actn7uhhuz45v09x2fs66x5"
+            info_wallet_balance: 1000000000
+            warn_wallet_balance: 500000000
+            min_wallet_balance: 100000000
+            expected_price_feed_id: "0x4ea5bb4d2f5900cc2e97ba534240950740b4d3b89fe712a94a7304fd2fd92702"
+            expected_contract_address: "akash1436kxs0w2es6xlqpp9rd35e3d0cjnw4sv8j3a7483sgks29jqwgst0v7cu"
+          # Relayers 05 and 06 — uncomment and fill in when instances come online
+          #- name: hermes-relayer-05
+          #  health_endpoint: "FILL_IN_NEW_RELAYER_05_HEALTH_URL"
+          #  wallet: "FILL_IN_NEW_RELAYER_05_WALLET"
           #  info_wallet_balance: 1000000000
           #  warn_wallet_balance: 500000000
           #  min_wallet_balance: 100000000
           #  expected_price_feed_id: "0x4ea5bb4d2f5900cc2e97ba534240950740b4d3b89fe712a94a7304fd2fd92702"
-          #  expected_contract_address: "FILL_IN_NEW_RELAYER_01_CONTRACT"
-          #- name: hermes-relayer-new-02
-          #  health_endpoint: "FILL_IN_NEW_RELAYER_02_HEALTH_URL"
-          #  wallet: "FILL_IN_NEW_RELAYER_02_WALLET"
+          #  expected_contract_address: "akash1436kxs0w2es6xlqpp9rd35e3d0cjnw4sv8j3a7483sgks29jqwgst0v7cu"
+          #- name: hermes-relayer-06
+          #  health_endpoint: "FILL_IN_NEW_RELAYER_06_HEALTH_URL"
+          #  wallet: "FILL_IN_NEW_RELAYER_06_WALLET"
           #  info_wallet_balance: 1000000000
           #  warn_wallet_balance: 500000000
           #  min_wallet_balance: 100000000
           #  expected_price_feed_id: "0x4ea5bb4d2f5900cc2e97ba534240950740b4d3b89fe712a94a7304fd2fd92702"
-          #  expected_contract_address: "FILL_IN_NEW_RELAYER_02_CONTRACT"
-          #- name: hermes-relayer-new-03
-          #  health_endpoint: "FILL_IN_NEW_RELAYER_03_HEALTH_URL"
-          #  wallet: "FILL_IN_NEW_RELAYER_03_WALLET"
-          #  info_wallet_balance: 1000000000
-          #  warn_wallet_balance: 500000000
-          #  min_wallet_balance: 100000000
-          #  expected_price_feed_id: "0x4ea5bb4d2f5900cc2e97ba534240950740b4d3b89fe712a94a7304fd2fd92702"
-          #  expected_contract_address: "FILL_IN_NEW_RELAYER_03_CONTRACT"
+          #  expected_contract_address: "akash1436kxs0w2es6xlqpp9rd35e3d0cjnw4sv8j3a7483sgks29jqwgst0v7cu"
