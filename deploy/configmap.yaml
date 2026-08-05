@@ -144,15 +144,15 @@ data:
             min_wallet_balance: 100000000
             expected_price_feed_id: "0x4ea5bb4d2f5900cc2e97ba534240950740b4d3b89fe712a94a7304fd2fd92702"
             expected_contract_address: "akash1436kxs0w2es6xlqpp9rd35e3d0cjnw4sv8j3a7483sgks29jqwgst0v7cu"
-          # Relayers 05 and 06 — uncomment and fill in when instances come online
-          #- name: hermes-relayer-05
-          #  health_endpoint: "FILL_IN_NEW_RELAYER_05_HEALTH_URL"
-          #  wallet: "FILL_IN_NEW_RELAYER_05_WALLET"
-          #  info_wallet_balance: 1000000000
-          #  warn_wallet_balance: 500000000
-          #  min_wallet_balance: 100000000
-          #  expected_price_feed_id: "0x4ea5bb4d2f5900cc2e97ba534240950740b4d3b89fe712a94a7304fd2fd92702"
-          #  expected_contract_address: "akash1436kxs0w2es6xlqpp9rd35e3d0cjnw4sv8j3a7483sgks29jqwgst0v7cu"
+          - name: hermes-relayer-05
+            health_endpoint: "https://hermesrelayerprod2-new.akash.pub/health"
+            wallet: "akash17ez5cs6mpa3fdn3g52grgjl6ghetsrrr5g2jpy"
+            info_wallet_balance: 1000000000
+            warn_wallet_balance: 500000000
+            min_wallet_balance: 100000000
+            expected_price_feed_id: "0x4ea5bb4d2f5900cc2e97ba534240950740b4d3b89fe712a94a7304fd2fd92702"
+            expected_contract_address: "akash1436kxs0w2es6xlqpp9rd35e3d0cjnw4sv8j3a7483sgks29jqwgst0v7cu"
+          # Relayer 06 — uncomment and fill in when instance comes online
           #- name: hermes-relayer-06
           #  health_endpoint: "FILL_IN_NEW_RELAYER_06_HEALTH_URL"
           #  wallet: "FILL_IN_NEW_RELAYER_06_WALLET"
