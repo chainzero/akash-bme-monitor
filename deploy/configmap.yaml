@@ -138,7 +138,7 @@ data:
           # --- New relayers (new pyth-pro contract) ---
           - name: hermes-relayer-04
             health_endpoint: "https://hermesrelayerprod4.akash.pub/health"
-            wallet: "akash1plnnughn6kvmtz6actn7uhhuz45v09x2fs66x5"
+            wallet: "akash1math5r2nq5mz3e4kaht27d89t08tpr33w7ds78"
             info_wallet_balance: 1000000000
             warn_wallet_balance: 500000000
             min_wallet_balance: 100000000
@@ -146,7 +146,7 @@ data:
             expected_contract_address: "akash1436kxs0w2es6xlqpp9rd35e3d0cjnw4sv8j3a7483sgks29jqwgst0v7cu"
           - name: hermes-relayer-05
             health_endpoint: "https://hermesrelayerprod2-new.akash.pub/health"
-            wallet: "akash17ez5cs6mpa3fdn3g52grgjl6ghetsrrr5g2jpy"
+            wallet: "akash1qafvet3v5nlkqdrlrkayy0eenq80aprqvj6nap"
             info_wallet_balance: 1000000000
             warn_wallet_balance: 500000000
             min_wallet_balance: 100000000
