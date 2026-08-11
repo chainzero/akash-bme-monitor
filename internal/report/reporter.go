@@ -267,7 +267,7 @@ func (r *Reporter) appendBMEStatus(ctx context.Context, b *strings.Builder, node
 		refundsIcon = "🔴"
 	}
 
-	fmt.Fprintf(b, "BME: %s %s  |  collateral: %.0fx  |  mints: %s  refunds: %s  (warn: %.2f  halt: %.2f)\n\n",
+	fmt.Fprintf(b, "BME: %s %s  |  collateral: %.2fx  |  mints: %s  refunds: %s  (warn: %.2f  halt: %.2f)\n\n",
 		bmeIcon, formatBMEStatus(s.Status), ratio, mintsIcon, refundsIcon, warnThreshold, haltThreshold)
 }
 

@@ -29,22 +29,51 @@ import (
 // automatically adjusts if governance changes them — no config update required.
 //
 // Alert conditions monitored:
-//   - collateral_ratio < warn_threshold  → Warning (approaching halt)
-//   - collateral_ratio < halt_threshold  → Critical (minting may be halted)
-//   - mints_allowed = false              → Critical (minting is halted)
-//   - refunds_allowed = false            → Critical (refunds are halted)
+//   - collateral_ratio < warn_threshold        → Warning (approaching halt)
+//   - collateral_ratio < halt_threshold         → Critical (minting may be halted)
+//   - collateral_ratio <= CollateralRatioWarnAt → Warning, one-shot (advance notice, see below)
+//   - collateral_ratio <= CollateralRatioCriticalAt → Critical, one-shot (advance notice)
+//   - mints_allowed = false                     → Critical (minting is halted)
+//   - refunds_allowed = false                   → Critical (refunds are halted)
 //
-// All four conditions are tracked independently with their own alert keys so
-// that each can resolve separately as the system recovers.
+// All conditions are tracked independently with their own alert keys so that
+// each can resolve separately as the system recovers. The advance-warning
+// thresholds exist because warn_threshold/halt_threshold sit just below 1.0 —
+// they only trip once a halt is already imminent. CollateralRatioWarnAt and
+// CollateralRatioCriticalAt (default 1.25 / 1.0) give earlier notice, firing
+// once per breach rather than on every poll.
 type StatusMonitor struct {
 	network                       config.NetworkConfig
 	cfg                           config.BMEConfig
 	alerter                       alerting.Alerter
 	logger                        *slog.Logger
 	client                        *http.Client
-	consecutiveFailures           int // API unreachable
-	consecutiveHaltedPolls        int // mints or refunds halted
-	consecutiveCollateralBreaches int // ratio below warn or halt threshold
+	consecutiveFailures           int  // API unreachable
+	consecutiveHaltedPolls        int  // mints or refunds halted
+	consecutiveCollateralBreaches int  // ratio below warn or halt threshold
+	advanceWarnSent               bool // one-shot: ratio <= CollateralRatioWarnAt
+	advanceCriticalSent           bool // one-shot: ratio <= CollateralRatioCriticalAt
+}
+
+// defaultAdvanceWarnAt and defaultAdvanceCriticalAt are used when the
+// corresponding config fields are left unset (zero).
+const (
+	defaultAdvanceWarnAt     = 1.25
+	defaultAdvanceCriticalAt = 1.0
+)
+
+func (m *StatusMonitor) advanceWarnThreshold() float64 {
+	if m.cfg.CollateralRatioWarnAt > 0 {
+		return m.cfg.CollateralRatioWarnAt
+	}
+	return defaultAdvanceWarnAt
+}
+
+func (m *StatusMonitor) advanceCriticalThreshold() float64 {
+	if m.cfg.CollateralRatioCriticalAt > 0 {
+		return m.cfg.CollateralRatioCriticalAt
+	}
+	return defaultAdvanceCriticalAt
 }
 
 func NewStatusMonitor(
@@ -304,6 +333,73 @@ func (m *StatusMonitor) check(ctx context.Context) {
 				m.network.Name, ratio, warnThreshold, s.Status,
 			),
 		)
+	}
+
+	// --- Check 1b: Advance collateral ratio warning (fixed thresholds, one-shot) ---
+	//
+	// The chain-threshold check above only fires once the ratio is already near
+	// the chain's own halt point (default 0.90) — by then a halt is imminent.
+	// These fixed thresholds (default 1.25 / 1.0) give earlier notice while
+	// there's more room to react. Unlike the check above, each level fires only
+	// once per breach — not on every poll — and resets once the ratio recovers
+	// back above the warn threshold, so a later dip alerts again.
+	advanceKey := fmt.Sprintf("bme_collateral_advance_%s", m.network.Name)
+	warnAt := m.advanceWarnThreshold()
+	criticalAt := m.advanceCriticalThreshold()
+
+	switch {
+	case ratio <= criticalAt:
+		if !m.advanceCriticalSent {
+			m.advanceCriticalSent = true
+			m.advanceWarnSent = true
+			m.alerter.Send(types.Alert{
+				Key:      advanceKey,
+				Severity: types.SeverityCritical,
+				Title:    fmt.Sprintf("BME COLLATERAL RATIO ADVANCE CRITICAL — %s", m.network.Name),
+				Body: fmt.Sprintf(
+					"Network: %s\n"+
+						"Collateral Ratio: %.4f\n"+
+						"Advance Critical Threshold: %.4f\n"+
+						"Chain Halt Threshold:       %.4f\n\n"+
+						"The ratio has fallen to or below the advance critical threshold — this is\n"+
+						"a one-time alert and will not repeat while the ratio stays at or below\n"+
+						"this level. It fires again only after recovering above %.4f and dropping\n"+
+						"again.",
+					m.network.Name, ratio, criticalAt, haltThreshold, warnAt,
+				),
+			})
+		}
+	case ratio <= warnAt:
+		if !m.advanceWarnSent {
+			m.advanceWarnSent = true
+			m.alerter.Send(types.Alert{
+				Key:      advanceKey,
+				Severity: types.SeverityWarning,
+				Title:    fmt.Sprintf("BME COLLATERAL RATIO ADVANCE WARNING — %s", m.network.Name),
+				Body: fmt.Sprintf(
+					"Network: %s\n"+
+						"Collateral Ratio: %.4f\n"+
+						"Advance Warn Threshold: %.4f\n\n"+
+						"The ratio has fallen to or below the advance warning threshold — this is\n"+
+						"a one-time alert and will not repeat while the ratio stays at or below\n"+
+						"this level.",
+					m.network.Name, ratio, warnAt,
+				),
+			})
+		}
+	default:
+		if m.advanceWarnSent || m.advanceCriticalSent {
+			m.alerter.Resolve(
+				advanceKey,
+				fmt.Sprintf("BME COLLATERAL RATIO RECOVERED — %s", m.network.Name),
+				fmt.Sprintf(
+					"Network: %s\nCollateral Ratio: %.4f (recovered above advance warn threshold %.4f)",
+					m.network.Name, ratio, warnAt,
+				),
+			)
+		}
+		m.advanceWarnSent = false
+		m.advanceCriticalSent = false
 	}
 
 	// --- Check 2: Minting or refunds halted (combined) ---

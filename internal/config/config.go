@@ -10,16 +10,16 @@ import (
 
 // Config is the top-level configuration structure loaded from config.yaml.
 type Config struct {
-	Slack                SlackConfig        `yaml:"slack"`
-	Report               ReportConfig       `yaml:"report"`
-	OraclePriceMonitor   OraclePriceConfig  `yaml:"oracle_price_monitor"`
-	HermesHealthMonitor  HermesHealthConfig `yaml:"hermes_health_monitor"`
-	GuardianSetMonitor   GuardianSetConfig  `yaml:"guardian_set_monitor"`
-	WormholescanMonitor  WormholescanConfig `yaml:"wormholescan_monitor"`
-	RouterSetMonitor     RouterSetConfig    `yaml:"router_set_monitor"`
-	BMEMonitor           BMEConfig          `yaml:"bme_monitor"`
-	AnnouncementMonitor  AnnouncementConfig `yaml:"announcement_monitor"`
-	Networks             []NetworkConfig    `yaml:"networks"`
+	Slack               SlackConfig        `yaml:"slack"`
+	Report              ReportConfig       `yaml:"report"`
+	OraclePriceMonitor  OraclePriceConfig  `yaml:"oracle_price_monitor"`
+	HermesHealthMonitor HermesHealthConfig `yaml:"hermes_health_monitor"`
+	GuardianSetMonitor  GuardianSetConfig  `yaml:"guardian_set_monitor"`
+	WormholescanMonitor WormholescanConfig `yaml:"wormholescan_monitor"`
+	RouterSetMonitor    RouterSetConfig    `yaml:"router_set_monitor"`
+	BMEMonitor          BMEConfig          `yaml:"bme_monitor"`
+	AnnouncementMonitor AnnouncementConfig `yaml:"announcement_monitor"`
+	Networks            []NetworkConfig    `yaml:"networks"`
 }
 
 // ReportConfig controls the startup and scheduled health summary messages.
@@ -37,10 +37,10 @@ type SlackConfig struct {
 }
 
 type OraclePriceConfig struct {
-	Enabled        bool            `yaml:"enabled"`
-	PollInterval   Duration        `yaml:"poll_interval"`
-	Thresholds     PriceThresholds `yaml:"thresholds"`
-	OracleAPIVersion string        `yaml:"oracle_api_version"` // "v1" (default) or "v2"
+	Enabled          bool            `yaml:"enabled"`
+	PollInterval     Duration        `yaml:"poll_interval"`
+	Thresholds       PriceThresholds `yaml:"thresholds"`
+	OracleAPIVersion string          `yaml:"oracle_api_version"` // "v1" (default) or "v2"
 }
 
 type PriceThresholds struct {
@@ -104,9 +104,17 @@ type RouterSetConfig struct {
 // Thresholds (warn/halt) are read dynamically from the chain on each poll cycle —
 // they are NOT configured here. This ensures the monitor automatically respects
 // any changes made via Akash governance without requiring a restart.
+//
+// CollateralRatioWarnAt and CollateralRatioCriticalAt are separate, statically
+// configured early-warning thresholds. The chain's own warn/halt thresholds sit
+// just below 1.0, so they only trip once the system is already in near-total
+// collapse — these give advance notice with more room to react. Default 1.25
+// and 1.0 respectively if unset (zero).
 type BMEConfig struct {
-	Enabled      bool     `yaml:"enabled"`
-	PollInterval Duration `yaml:"poll_interval"`
+	Enabled                   bool     `yaml:"enabled"`
+	PollInterval              Duration `yaml:"poll_interval"`
+	CollateralRatioWarnAt     float64  `yaml:"collateral_ratio_warn_at"`
+	CollateralRatioCriticalAt float64  `yaml:"collateral_ratio_critical_at"`
 }
 
 type AnnouncementConfig struct {
@@ -144,12 +152,12 @@ type NetworkConfig struct {
 	// AkashAPINodes is the list of Akash REST API base URLs to try in order.
 	// The first node that responds without a network error or 5xx is used.
 	// Configure multiple nodes for redundancy against single-node outages.
-	AkashAPINodes    []string        `yaml:"akash_api"`
-	WormholeContract string          `yaml:"wormhole_contract"`
+	AkashAPINodes    []string `yaml:"akash_api"`
+	WormholeContract string   `yaml:"wormhole_contract"`
 	// PythVAAContract is the pyth-vaa CosmWasm contract address (post-Pyth core upgrade).
 	// Replaces WormholeContract for router set index verification.
-	PythVAAContract  string          `yaml:"pyth_vaa_contract"`
-	HermesRelayers   []RelayerConfig `yaml:"hermes_relayers"`
+	PythVAAContract string          `yaml:"pyth_vaa_contract"`
+	HermesRelayers  []RelayerConfig `yaml:"hermes_relayers"`
 	// OperatorAddress is the --from value for akash tx wasm execute when submitting
 	// a guardian set upgrade VAA. Included verbatim in rotation alert commands.
 	OperatorAddress string `yaml:"operator_address"`

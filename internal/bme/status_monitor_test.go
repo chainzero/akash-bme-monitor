@@ -385,6 +385,133 @@ func TestCheck_Non200_NoAlert(t *testing.T) {
 	_ = a
 }
 
+// --- Advance collateral ratio warning (fixed thresholds, one-shot) ---
+
+func bmeBodyWithRatio(ratio string) string {
+	return fmt.Sprintf(
+		`{"status":"mint_status_healthy","collateral_ratio":"%s","warn_threshold":"0.95","halt_threshold":"0.90","mints_allowed":true,"refunds_allowed":true}`,
+		ratio,
+	)
+}
+
+func TestCheck_AdvanceWarning_FiresOnce(t *testing.T) {
+	srv := bmeServer(bmeBodyWithRatio("1.10"), http.StatusOK)
+	defer srv.Close()
+
+	a := &mockAlerter{}
+	m := newMonitor(srv.URL, a)
+	m.check(context.Background())
+	m.check(context.Background())
+	m.check(context.Background())
+
+	key := fmt.Sprintf("bme_collateral_advance_%s", m.network.Name)
+	sends := filterKey(a.sends, key)
+	if len(sends) != 1 {
+		t.Fatalf("expected 1 advance warning send across 3 polls, got %d", len(sends))
+	}
+	if sends[0].Severity != types.SeverityWarning {
+		t.Errorf("severity = %v, want Warning", sends[0].Severity)
+	}
+}
+
+func TestCheck_AdvanceCritical_FiresOnce(t *testing.T) {
+	srv := bmeServer(bmeBodyWithRatio("0.80"), http.StatusOK)
+	defer srv.Close()
+
+	a := &mockAlerter{}
+	m := newMonitor(srv.URL, a)
+	m.check(context.Background())
+	m.check(context.Background())
+
+	key := fmt.Sprintf("bme_collateral_advance_%s", m.network.Name)
+	sends := filterKey(a.sends, key)
+	if len(sends) != 1 {
+		t.Fatalf("expected 1 advance critical send across 2 polls, got %d", len(sends))
+	}
+	if sends[0].Severity != types.SeverityCritical {
+		t.Errorf("severity = %v, want Critical", sends[0].Severity)
+	}
+}
+
+func TestCheck_AdvanceWarning_ThenCritical_BothFire(t *testing.T) {
+	warnSrv := bmeServer(bmeBodyWithRatio("1.10"), http.StatusOK)
+	defer warnSrv.Close()
+	criticalSrv := bmeServer(bmeBodyWithRatio("0.80"), http.StatusOK)
+	defer criticalSrv.Close()
+
+	a := &mockAlerter{}
+	m := newMonitor(warnSrv.URL, a)
+	m.check(context.Background()) // 1.10 -> advance Warning
+
+	m.network.AkashAPINodes = []string{criticalSrv.URL}
+	m.check(context.Background()) // 0.80 -> advance Critical
+
+	key := fmt.Sprintf("bme_collateral_advance_%s", m.network.Name)
+	sends := filterKey(a.sends, key)
+	if len(sends) != 2 {
+		t.Fatalf("expected 2 advance sends (warning then critical), got %d", len(sends))
+	}
+	if sends[0].Severity != types.SeverityWarning {
+		t.Errorf("first send severity = %v, want Warning", sends[0].Severity)
+	}
+	if sends[1].Severity != types.SeverityCritical {
+		t.Errorf("second send severity = %v, want Critical", sends[1].Severity)
+	}
+}
+
+func TestCheck_AdvanceWarning_RecoversAndRefires(t *testing.T) {
+	lowSrv := bmeServer(bmeBodyWithRatio("1.10"), http.StatusOK)
+	defer lowSrv.Close()
+	recoveredSrv := bmeServer(healthyBME(), http.StatusOK)
+	defer recoveredSrv.Close()
+
+	a := &mockAlerter{}
+	m := newMonitor(lowSrv.URL, a)
+	m.check(context.Background()) // breach -> Warning #1
+
+	m.network.AkashAPINodes = []string{recoveredSrv.URL}
+	m.check(context.Background()) // recovers -> resolve
+
+	m.network.AkashAPINodes = []string{lowSrv.URL}
+	m.check(context.Background()) // breach again -> Warning #2
+
+	key := fmt.Sprintf("bme_collateral_advance_%s", m.network.Name)
+	sends := filterKey(a.sends, key)
+	if len(sends) != 2 {
+		t.Fatalf("expected 2 advance warning sends across the breach/recover/breach cycle, got %d", len(sends))
+	}
+
+	hasResolve := false
+	for _, r := range a.resolves {
+		if r.key == key {
+			hasResolve = true
+		}
+	}
+	if !hasResolve {
+		t.Error("expected an advance resolve after recovery")
+	}
+}
+
+func TestCheck_AdvanceWarning_CustomThresholds(t *testing.T) {
+	srv := bmeServer(bmeBodyWithRatio("1.40"), http.StatusOK)
+	defer srv.Close()
+
+	a := &mockAlerter{}
+	network := config.NetworkConfig{Name: "testnet", AkashAPINodes: []string{srv.URL}}
+	cfg := config.BMEConfig{CollateralRatioWarnAt: 1.5, CollateralRatioCriticalAt: 1.2}
+	m := NewStatusMonitor(network, cfg, a, testLogger())
+	m.check(context.Background())
+
+	key := fmt.Sprintf("bme_collateral_advance_%s", m.network.Name)
+	sends := filterKey(a.sends, key)
+	if len(sends) != 1 {
+		t.Fatalf("expected 1 advance send at ratio 1.40 with warn_at=1.5, got %d", len(sends))
+	}
+	if sends[0].Severity != types.SeverityWarning {
+		t.Errorf("severity = %v, want Warning", sends[0].Severity)
+	}
+}
+
 // filterKey returns only the sends with a given key.
 func filterKey(sends []types.Alert, key string) []types.Alert {
 	var out []types.Alert

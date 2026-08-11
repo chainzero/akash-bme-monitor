@@ -76,6 +76,12 @@ data:
     bme_monitor:
       enabled: true
       poll_interval: 60s
+      # Advance collateral ratio warning thresholds — independent of the chain's
+      # own warn/halt thresholds (which sit just below 1.0). Each fires once per
+      # breach, not on every poll, and resets once the ratio recovers above
+      # collateral_ratio_warn_at.
+      collateral_ratio_warn_at: 1.25
+      collateral_ratio_critical_at: 1.0
 
     # Component 4: Guardian Update Announcements
     announcement_monitor:
@@ -109,33 +115,8 @@ data:
         wormhole_contract: "akash14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9sggdamt"
         pyth_vaa_contract: "akash1zwv6feuzhy6a9wekh96cd57lsarmqlwxdypdsplw6zhfncqw6ftqucuysk"
         hermes_relayers:
-          # --- Existing relayers (old wormhole/pyth-wasm contracts) ---
-          # These remain active ~2 weeks post-upgrade. Leave in place during transition.
-          - name: hermes-relayer-01
-            health_endpoint: "https://hermesrelayerprod1.akash.pub/health"
-            wallet: "akash1plnnughn6kvmtz6actn7uhhuz45v09x2fs66x5"
-            info_wallet_balance: 1000000000
-            warn_wallet_balance: 500000000
-            min_wallet_balance: 100000000
-            expected_price_feed_id: "0x4ea5bb4d2f5900cc2e97ba534240950740b4d3b89fe712a94a7304fd2fd92702"
-            expected_contract_address: "akash1nc5tatafv6eyq7llkr2gv50ff9e22mnf70qgjlv737ktmt4eswrqyagled"
-          - name: hermes-relayer-02
-            health_endpoint: "https://hermesrelayerprod2.akash.pub/health"
-            wallet: "akash17ez5cs6mpa3fdn3g52grgjl6ghetsrrr5g2jpy"
-            info_wallet_balance: 1000000000
-            warn_wallet_balance: 500000000
-            min_wallet_balance: 100000000
-            expected_price_feed_id: "0x4ea5bb4d2f5900cc2e97ba534240950740b4d3b89fe712a94a7304fd2fd92702"
-            expected_contract_address: "akash1nc5tatafv6eyq7llkr2gv50ff9e22mnf70qgjlv737ktmt4eswrqyagled"
-          - name: hermes-relayer-03
-            health_endpoint: "https://hermesrelayerprod3.akash.pub/health"
-            wallet: "akash1dv7vtjmydlzn3mrccz0qh2wgdrgpx7frmg3xda"
-            info_wallet_balance: 1000000000
-            warn_wallet_balance: 500000000
-            min_wallet_balance: 100000000
-            expected_price_feed_id: "0x4ea5bb4d2f5900cc2e97ba534240950740b4d3b89fe712a94a7304fd2fd92702"
-            expected_contract_address: "akash1nc5tatafv6eyq7llkr2gv50ff9e22mnf70qgjlv737ktmt4eswrqyagled"
-          # --- New relayers (new pyth-pro contract) ---
+          # --- Relayers (new pyth-pro contract) ---
+          # Relayers 01-03 (old wormhole/pyth-wasm contracts) retired 2026-08-11.
           - name: hermes-relayer-04
             health_endpoint: "https://hermesrelayerprod4.akash.pub/health"
             wallet: "akash1math5r2nq5mz3e4kaht27d89t08tpr33w7ds78"
@@ -152,12 +133,11 @@ data:
             min_wallet_balance: 100000000
             expected_price_feed_id: "0x4ea5bb4d2f5900cc2e97ba534240950740b4d3b89fe712a94a7304fd2fd92702"
             expected_contract_address: "akash1436kxs0w2es6xlqpp9rd35e3d0cjnw4sv8j3a7483sgks29jqwgst0v7cu"
-          # Relayer 06 — uncomment and fill in when instance comes online
-          #- name: hermes-relayer-06
-          #  health_endpoint: "FILL_IN_NEW_RELAYER_06_HEALTH_URL"
-          #  wallet: "FILL_IN_NEW_RELAYER_06_WALLET"
-          #  info_wallet_balance: 1000000000
-          #  warn_wallet_balance: 500000000
-          #  min_wallet_balance: 100000000
-          #  expected_price_feed_id: "0x4ea5bb4d2f5900cc2e97ba534240950740b4d3b89fe712a94a7304fd2fd92702"
-          #  expected_contract_address: "akash1436kxs0w2es6xlqpp9rd35e3d0cjnw4sv8j3a7483sgks29jqwgst0v7cu"
+          - name: hermes-relayer-06
+            health_endpoint: "https://hermesrelayerprod6.akash.pub/health"
+            wallet: "akash1xudaafpk43v8x484pz5egjcqqgt03np5f7h4sk"
+            info_wallet_balance: 1000000000
+            warn_wallet_balance: 500000000
+            min_wallet_balance: 100000000
+            expected_price_feed_id: "0x4ea5bb4d2f5900cc2e97ba534240950740b4d3b89fe712a94a7304fd2fd92702"
+            expected_contract_address: "akash1436kxs0w2es6xlqpp9rd35e3d0cjnw4sv8j3a7483sgks29jqwgst0v7cu"

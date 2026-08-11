@@ -81,7 +81,7 @@ Fetches the latest AKT/USD price from the Akash oracle module and checks how old
 ### 2. Hermes Relayer Health
 **Poll:** every 30s — alerts after **3 consecutive failures**
 
-For each relayer (`hermes-relayer-01/02/03`):
+For each relayer (`hermes-relayer-04/05/06`):
 - `/health` endpoint reachable and `isRunning = true`
 - Wallet balance vs. thresholds (Info: < 1000 AKT, Warning: < 500 AKT, Critical: < 100 AKT)
 - `contractAddress` and `priceFeedId` match expected values (misconfiguration detection)
@@ -114,6 +114,15 @@ Monitors the Akash token burn/mint mechanism. Three independent checks:
 | 1 | Warning |
 | 2 | Critical |
 | 3 | Emergency (final) |
+
+**Collateral ratio advance warning** (fixed thresholds, independent of the chain's own warn/halt): the chain-defined thresholds above sit just below 1.0, so they only trip once a halt is imminent. These give earlier notice:
+
+| Ratio | Severity |
+|-------|----------|
+| <= `collateral_ratio_warn_at` (default 1.25) | Warning |
+| <= `collateral_ratio_critical_at` (default 1.0) | Critical |
+
+Each level fires **once** per breach (not on every poll) and resets once the ratio recovers back above `collateral_ratio_warn_at`, so a later dip alerts again.
 
 **Minting or refunds halted** (`mints_allowed` / `refunds_allowed`):
 
