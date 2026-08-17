@@ -89,16 +89,27 @@ For each relayer (`hermes-relayer-04/05/06`):
 ---
 
 ### 3. Guardian Set — Ethereum RPC
-**Poll:** every 10 min
+**Disabled on mainnet as of 2026-08-12** — Pyth dropped support for the legacy wormhole/pyth-wasm contract path; Component 7 (Router Set) is now the sole mandatory currency check. Still enabled on `deploy-testnet/` until the transition window there closes; disabled on `deploy-sandbox/` already.
+
+**Poll:** every 10 min (when enabled)
 
 Reads the current Wormhole guardian set directly from the Ethereum contract (`0x98f3c9e6...`) and compares the guardian addresses against what the Akash Wormhole CosmWasm contract holds on-chain. Alerts if the sets are out of sync.
 
 ---
 
 ### 4. Guardian Set — Wormholescan
-**Poll:** every 30 min
+**Disabled on mainnet as of 2026-08-12** — same rationale as Component 3 above.
+
+**Poll:** every 30 min (when enabled)
 
 Secondary detection path via the Wormholescan REST API. Monitors for guardian set index changes and retrieves the governance VAA needed for on-chain submission if an upgrade occurs. Complements Component 3 — does not require an Ethereum RPC.
+
+---
+
+### 7. Router Set — Pyth Hermes
+**Poll:** every 10 min
+
+Replaces Components 3 & 5 post-Pyth-core-upgrade. Fetches a live price update VAA from the authenticated Hermes endpoint (`pyth.dourolabs.app/hermes`) and decodes the active `router_set_index`, then compares it against each network's `pyth-vaa` contract's stored index. Alerts if they differ — the contract is behind the active router set and price submissions will start failing with `InvalidRouterSetIndex`. Also alerts (Warning, single-shot) if the Hermes endpoint itself is unreachable, since a router set rotation could go undetected while it's down.
 
 ---
 
