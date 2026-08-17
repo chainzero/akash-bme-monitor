@@ -157,7 +157,7 @@ func (r *Reporter) post(ctx context.Context, header string) {
 
 	// Pyth forum monitoring note
 	if r.cfg.AnnouncementMonitor.Enabled && r.cfg.AnnouncementMonitor.PythForum.Enabled {
-		fmt.Fprintf(&b, "\nPyth Forum: ✅ monitoring active\n")
+		fmt.Fprintf(&b, "Pyth Forum: ✅ monitoring active\n")
 	}
 
 	r.appendAPIHealthChecks(ctx, &b, liveRouterErr)
