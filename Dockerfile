@@ -3,7 +3,7 @@
 # --- Stage 1: Build ---
 # Use the official Go image to compile a fully static binary.
 # Alpine is used over Debian to keep the builder layer small.
-FROM golang:1.25-alpine AS builder
+FROM golang:1.27-alpine AS builder
 
 WORKDIR /build
 
