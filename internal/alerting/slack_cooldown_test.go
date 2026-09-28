@@ -125,3 +125,30 @@ func TestShouldSend_MultipleEscalationSteps(t *testing.T) {
 		s.mu.Unlock()
 	}
 }
+
+func TestShouldSend_CustomCooldown_SuppressesPastDefault(t *testing.T) {
+	// Sent 11 minutes ago — default would resend, but a 12h override should not.
+	sentAt := time.Now().Add(-(defaultCooldown + time.Minute))
+	s := newSlackWithCooldown("k", types.SeverityInfo, sentAt)
+	alert := types.Alert{Key: "k", Severity: types.SeverityInfo, Cooldown: 12 * time.Hour, Time: time.Now()}
+	if s.shouldSend(alert) {
+		t.Error("shouldSend() = true within custom 12h cooldown, want false")
+	}
+}
+
+func TestShouldSend_CustomCooldown_Expired(t *testing.T) {
+	sentAt := time.Now().Add(-(time.Hour + time.Minute))
+	s := newSlackWithCooldown("k", types.SeverityCritical, sentAt)
+	alert := types.Alert{Key: "k", Severity: types.SeverityCritical, Cooldown: time.Hour, Time: time.Now()}
+	if !s.shouldSend(alert) {
+		t.Error("shouldSend() = false after custom 1h cooldown expired, want true")
+	}
+}
+
+func TestShouldSend_CustomCooldown_EscalationBypasses(t *testing.T) {
+	s := newSlackWithCooldown("k", types.SeverityInfo, time.Now())
+	alert := types.Alert{Key: "k", Severity: types.SeverityWarning, Cooldown: 6 * time.Hour, Time: time.Now()}
+	if !s.shouldSend(alert) {
+		t.Error("shouldSend() = false for escalation with custom cooldown, want true")
+	}
+}

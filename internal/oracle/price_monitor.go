@@ -220,12 +220,22 @@ func (m *PriceMonitor) fetchLatestPrice(ctx context.Context) (*types.OraclePrice
 	return &result.Prices[0], nil
 }
 
+// Resend intervals for wallet balance alerts while a balance stays in a tier.
+const (
+	walletCooldownInfo     = 12 * time.Hour
+	walletCooldownWarning  = 6 * time.Hour
+	walletCooldownCritical = 1 * time.Hour
+)
+
 // checkWalletBalance verifies the Hermes relayer wallet has enough AKT for gas.
 // Three alert tiers (all use the same alert key so severity escalation/de-escalation works):
 //
 //	< min_wallet_balance  (default 100 AKT)  → Critical
 //	< warn_wallet_balance (default 500 AKT)  → Warning
 //	< info_wallet_balance (default 1000 AKT) → Info
+//
+// Each tier repeats on its own cooldown (see walletCooldown*) rather than the
+// alerter's 10m default, since low balances drain slowly.
 func (m *PriceMonitor) checkWalletBalance(ctx context.Context, relayer config.RelayerConfig) {
 	if relayer.Wallet == "" || relayer.MinWalletBalance == 0 {
 		return
@@ -257,6 +267,7 @@ func (m *PriceMonitor) checkWalletBalance(ctx context.Context, relayer config.Re
 		m.alerter.Send(types.Alert{
 			Key:      alertKey,
 			Severity: types.SeverityCritical,
+			Cooldown: walletCooldownCritical,
 			Title:    fmt.Sprintf("HERMES WALLET CRITICAL — %s", relayer.Name),
 			Body: fmt.Sprintf(
 				"Network: %s\nRelayer: %s\nWallet: %s\n\n"+
@@ -273,6 +284,7 @@ func (m *PriceMonitor) checkWalletBalance(ctx context.Context, relayer config.Re
 		m.alerter.Send(types.Alert{
 			Key:      alertKey,
 			Severity: types.SeverityWarning,
+			Cooldown: walletCooldownWarning,
 			Title:    fmt.Sprintf("HERMES WALLET LOW — %s", relayer.Name),
 			Body: fmt.Sprintf(
 				"Network: %s\nRelayer: %s\nWallet: %s\n\n"+
@@ -290,6 +302,7 @@ func (m *PriceMonitor) checkWalletBalance(ctx context.Context, relayer config.Re
 		m.alerter.Send(types.Alert{
 			Key:      alertKey,
 			Severity: types.SeverityInfo,
+			Cooldown: walletCooldownInfo,
 			Title:    fmt.Sprintf("HERMES WALLET NOTICE — %s", relayer.Name),
 			Body: fmt.Sprintf(
 				"Network: %s\nRelayer: %s\nWallet: %s\n\n"+

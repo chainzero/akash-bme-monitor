@@ -106,5 +106,9 @@ func (s *Slack) shouldSend(alert types.Alert) bool {
 		return true
 	}
 	// Resend if cooldown has expired.
-	return time.Since(entry.sentAt) >= defaultCooldown
+	cooldown := defaultCooldown
+	if alert.Cooldown > 0 {
+		cooldown = alert.Cooldown
+	}
+	return time.Since(entry.sentAt) >= cooldown
 }

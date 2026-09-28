@@ -55,6 +55,9 @@ type Alert struct {
 	Title    string
 	Body     string
 	Time     time.Time
+	// Cooldown overrides the alerter's default resend interval for this alert
+	// when non-zero. Severity escalations still bypass it.
+	Cooldown time.Duration
 }
 
 // --- Oracle price types ---
