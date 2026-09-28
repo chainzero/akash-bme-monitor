@@ -187,8 +187,8 @@ func TestValidateGuardianSetUpgradeVAA_MultipleSignatures(t *testing.T) {
 	vaa = append(vaa, 0x01) // version
 	sigBuf := make([]byte, 4)
 	binary.BigEndian.PutUint32(sigBuf, newIndex-1)
-	vaa = append(vaa, sigBuf...) // signingIndex = 2
-	vaa = append(vaa, 0x02)      // numSigs = 2
+	vaa = append(vaa, sigBuf...)             // signingIndex = 2
+	vaa = append(vaa, 0x02)                  // numSigs = 2
 	vaa = append(vaa, make([]byte, 2*66)...) // 2 dummy signatures
 	vaa = append(vaa, make([]byte, 51)...)   // body
 

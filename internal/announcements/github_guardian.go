@@ -57,13 +57,13 @@ type githubPR struct {
 // Neither signal is guaranteed (the 5→6 rotation had no GitHub pre-announcement), but
 // both are low-cost to monitor and provide genuine advance warning when present.
 type GitHubGuardianMonitor struct {
-	cfg          config.GitHubConfig
-	alerter      alerting.Alerter
-	logger       *slog.Logger
-	client       *http.Client
-	knownFiles   map[string]bool
-	seenPRs      map[int]bool
-	baselined    bool
+	cfg        config.GitHubConfig
+	alerter    alerting.Alerter
+	logger     *slog.Logger
+	client     *http.Client
+	knownFiles map[string]bool
+	seenPRs    map[int]bool
+	baselined  bool
 }
 
 func NewGitHubGuardianMonitor(cfg config.GitHubConfig, alerter alerting.Alerter, logger *slog.Logger) *GitHubGuardianMonitor {

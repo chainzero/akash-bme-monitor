@@ -130,4 +130,3 @@ func main() {
 	<-ctx.Done()
 	slog.Info("shutting down")
 }
-

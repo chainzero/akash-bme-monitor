@@ -20,9 +20,11 @@ type mockAlerter struct {
 
 type resolveRecord struct{ key, title, body string }
 
-func (m *mockAlerter) Send(alert types.Alert)          { m.sends = append(m.sends, alert) }
-func (m *mockAlerter) Resolve(key, title, body string) { m.resolves = append(m.resolves, resolveRecord{key, title, body}) }
-func (m *mockAlerter) Post(title, body string)         {}
+func (m *mockAlerter) Send(alert types.Alert) { m.sends = append(m.sends, alert) }
+func (m *mockAlerter) Resolve(key, title, body string) {
+	m.resolves = append(m.resolves, resolveRecord{key, title, body})
+}
+func (m *mockAlerter) Post(title, body string) {}
 
 func testLogger() *slog.Logger {
 	return slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelError}))

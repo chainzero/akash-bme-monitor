@@ -44,9 +44,9 @@ func NewEtherscanClient(apiKey, wormholeContract string) *EtherscanClient {
 }
 
 type etherscanTxListResponse struct {
-	Status  string            `json:"status"`
-	Message string            `json:"message"`
-	Result  []etherscanTx     `json:"result"`
+	Status  string        `json:"status"`
+	Message string        `json:"message"`
+	Result  []etherscanTx `json:"result"`
 }
 
 type etherscanTx struct {

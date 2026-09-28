@@ -50,7 +50,7 @@ func (s Severity) Emoji() string {
 
 // Alert is the unit of work passed to the alerting layer.
 type Alert struct {
-	Key      string   // unique key used for deduplication / cooldown tracking
+	Key      string // unique key used for deduplication / cooldown tracking
 	Severity Severity
 	Title    string
 	Body     string
@@ -89,12 +89,12 @@ type OraclePriceState struct {
 
 // HermesHealthResponse is the JSON body returned by the Hermes /health endpoint.
 type HermesHealthResponse struct {
-	IsRunning                  bool   `json:"isRunning"`
-	Address                    string `json:"address"`
-	PriceFeedID                string `json:"priceFeedId"`
-	ContractAddress            string `json:"contractAddress"`
-	LastPriceUpdateReceivedAt  string `json:"lastPriceUpdateReceivedAt"`  // when relayer last received price from Hermes
-	LastPriceUpdateAt          string `json:"lastPriceUpdateAt"`           // when relayer last submitted price on-chain
+	IsRunning                 bool   `json:"isRunning"`
+	Address                   string `json:"address"`
+	PriceFeedID               string `json:"priceFeedId"`
+	ContractAddress           string `json:"contractAddress"`
+	LastPriceUpdateReceivedAt string `json:"lastPriceUpdateReceivedAt"` // when relayer last received price from Hermes
+	LastPriceUpdateAt         string `json:"lastPriceUpdateAt"`         // when relayer last submitted price on-chain
 }
 
 // --- Wallet balance types ---

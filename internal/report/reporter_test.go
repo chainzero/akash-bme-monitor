@@ -9,7 +9,7 @@ import (
 
 func TestParseHHMM_Valid(t *testing.T) {
 	cases := []struct {
-		input       string
+		input        string
 		wantH, wantM int
 	}{
 		{"00:00", 0, 0},
