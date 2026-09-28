@@ -3,7 +3,7 @@ module github.com/chainzero/akash-bme-monitor
 go 1.25.0
 
 require (
-	github.com/slack-go/slack v0.19.0
+	github.com/slack-go/slack v0.29.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
